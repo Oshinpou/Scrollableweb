@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Scroll Website</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: auto;
+}
+
+body {
+    margin: 0;
+    background: #10131c;
+    color: #e8ecf5;
+    font-family: Arial, sans-serif;
+    line-height: 1.9;
+}
+
+header {
+    background: #20263a;
+    padding: 24px 16px;
+    text-align: center;
+    border-bottom: 1px solid #414a65;
+}
+
+header h1 {
+    color: #80d8ff;
+    margin: 0 0 8px;
+}
+
+.controls {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #191e2c;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 1px solid #414a65;
+}
+
+button, select {
+    padding: 10px 14px;
+    border: 1px solid #53617f;
+    border-radius: 8px;
+    background: #29334c;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #405174;
+}
+
+main {
+    max-width: 900px;
+    margin: auto;
+    padding: 25px;
+}
+
+h2 {
+    color: #80d8ff;
+}
+
+#longText {
+    font-size: 17px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 15px;
+    color: #aab4ca;
+    background: #20263a;
+}
+
+#status {
+    color: #9ee6b0;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Auto Scroll Experience</h1>
+    <p>Explore a long page with automatic random scrolling.</p>
+</header>
+
+<div class="controls">
+    <button onclick="startScrolling()">Start</button>
+    <button onclick="pauseScrolling()">Pause</button>
+    <button onclick="requestWakeLock()">Keep Screen Awake</button>
+
+    <label for="speed">Speed:</label>
+    <select id="speed" onchange="changeSpeed()">
+        <option value="1">Slow</option>
+        <option value="3" selected>Normal</option>
+        <option value="6">Fast</option>
+        <option value="10">Very fast</option>
+    </select>
+
+    <span id="status">Preparing page...</span>
+</div>
+
+<main>
+    <h2>A Long Journey Through Ideas</h2>
+
+    <p id="longText">
+        Generating the 5000 word paragraph...
+    </p>
+</main>
+
+<footer>
+    The end of the page. Automatic scrolling website.
+</footer>
+
+<script>
+let scrolling = false;
+let scrollTimer = null;
+let wakeLock = null;
+let speed = 3;
+
+// Generate exactly 5000 words of readable filler text.
+function generateParagraph() {
+    const subjects = [
+        "A curious traveler",
+        "The modern world",
+        "A quiet morning",
+        "An imaginative student",
+        "The beautiful landscape",
+        "A thoughtful observer",
+        "The natural environment",
+        "A creative person",
+        "The distant horizon",
+        "An ordinary afternoon",
+        "The changing seasons",
+        "A peaceful garden",
+        "The endless universe",
+        "A new discovery",
+        "The human imagination",
+        "A fascinating journey",
+        "The colorful city",
+        "A small village",
+        "The digital future",
+        "An ancient forest"
+    ];
+
+    const actions = [
+        "explores unfamiliar places",
+        "discovers unexpected opportunities",
+        "observes the surrounding world",
+        "learns something meaningful",
+        "finds inspiration in nature",
+        "considers different possibilities",
+        "follows a winding pathway",
+        "experiences a moment of wonder",
+        "examines ordinary details carefully",
+        "imagines a brighter future",
+        "appreciates the beauty of simplicity",
+        "continues moving toward new horizons",
+        "notices changes in the environment",
+        "collects interesting memories",
+        "reflects on previous experiences"
+    ];
+
+    const endings = [
+        "while the surrounding scenery changes slowly.",
+        "and discovers that every experience matters.",
+        "as fresh ideas begin to emerge.",
+        "because curiosity encourages further learning.",
+        "with patience, attention, and an open mind.",
+        "while the passing hours bring new perspectives.",
+        "and gradually develops a deeper understanding.",
+        "as the world reveals another interesting detail.",
+        "with a sense of hope and possibility.",
+        "while unexpected moments create lasting memories."
+    ];
+
+    const connectors = [
+        "Meanwhile,",
+        "In another moment,",
+        "Along the way,",
+        "As time passes,",
+        "For this reason,",
+        "At the same time,",
+        "Beyond the familiar surroundings,",
+        "With renewed interest,",
+        "In the distance,",
+        "Eventually,"
+    ];
+
+    let sentences = [];
+    let wordCount = 0;
+
+    while (wordCount < 5000) {
+        const subject =
+            subjects[Math.floor(Math.random() * subjects.length)];
+
+        const action =
+            actions[Math.floor(Math.random() * actions.length)];
+
+        const ending =
+            endings[Math.floor(Math.random() * endings.length)];
+
+        const connector =
+            connectors[Math.floor(Math.random() * connectors.length)];
+
+        const sentence =
+            subject + " " + action + ", " + ending + " " +
+            connector + " new observations encourage reflection.";
+
+        sentences.push(sentence);
+        wordCount += sentence.trim().split(/\s+/).length;
+    }
+
+    let words = sentences.join(" ").split(/\s+/);
+
+    // Guarantee exactly 5000 whitespace-separated words.
+    words = words.slice(0, 5000);
+
+    // Add punctuation at the end.
+    words[words.length - 1] =
+        words[words.length - 1].replace(/[,.!?;:]*$/, ".");
+
+    document.getElementById("longText").textContent =
+        words.join(" ");
+
+    document.getElementById("status").textContent =
+        "5000 words ready";
+}
+
+// Request permission from the browser to keep the screen awake.
+async function requestWakeLock() {
+    if (!("wakeLock" in navigator)) {
+        document.getElementById("status").textContent =
+            "Wake Lock unsupported by this browser";
+        return;
+    }
+
+    try {
+        wakeLock = await navigator.wakeLock.request("screen");
+
+        document.getElementById("status").textContent =
+            "Screen wake lock active";
+
+        wakeLock.addEventListener("release", () => {
+            wakeLock = null;
+        });
+    } catch (error) {
+        document.getElementById("status").textContent =
+            "Wake lock unavailable; check browser settings";
+    }
+}
+
+// Randomly scroll up or down, with random distances and pauses.
+function scrollStep() {
+    if (!scrolling) return;
+
+    const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+    if (maxScroll <= 0) {
+        scrollTimer = setTimeout(scrollStep, 1000);
+        return;
+    }
+
+    const direction = Math.random() < 0.5 ? -1 : 1;
+
+    const distance =
+        Math.floor(150 + Math.random() * 650) * speed / 3;
+
+    let destination = window.scrollY + direction * distance;
+
+    // Reverse direction at page boundaries.
+    if (destination <= 0) {
+        destination = Math.min(distance, maxScroll);
+    }
+
+    if (destination >= maxScroll) {
+        destination = Math.max(0, maxScroll - distance);
+    }
+
+    window.scrollTo({
+        top: destination,
+        behavior: "smooth"
+    });
+
+    const delay = 1200 + Math.random() * 2500;
+
+    scrollTimer = setTimeout(scrollStep, delay);
+}
+
+function startScrolling() {
+    if (scrolling) return;
+
+    scrolling = true;
+
+    document.getElementById("status").textContent =
+        "Random scrolling active";
+
+    requestWakeLock();
+    scrollStep();
+}
+
+function pauseScrolling() {
+    scrolling = false;
+    clearTimeout(scrollTimer);
+
+    document.getElementById("status").textContent =
+        "Scrolling paused";
+}
+
+function changeSpeed() {
+    speed = Number(document.getElementById("speed").value);
+}
+
+// If the browser releases the wake lock when the page is hidden,
+// request it again when the page becomes visible.
+document.addEventListener("visibilitychange", async () => {
+    if (
+        document.visibilityState === "visible" &&
+        scrolling &&
+        !wakeLock
+    ) {
+        await requestWakeLock();
+    }
+});
+
+// Prepare the paragraph and automatically begin scrolling.
+window.addEventListener("load", () => {
+    generateParagraph();
+    startScrolling();
+});
+</script>
+
+</body>
+</html>
